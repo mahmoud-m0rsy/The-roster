@@ -27,11 +27,13 @@ builder.Services.AddSingleton<SetupCode>();
 builder.Services.AddSingleton<IPasswordHasher<Admin>, PasswordHasher<Admin>>();
 builder.Services.AddScoped<AdminAuth>();
 
-// Persist encryption keys so admin sessions survive restarts (encrypted at rest on Windows).
-var dataProtection = builder.Services.AddDataProtection()
+// Persist encryption keys so admin sessions survive restarts. Keys are deliberately not wrapped with
+// DPAPI: user-scoped DPAPI needs a loaded Windows user profile, which shared IIS app pools usually
+// don't have, so every login form and auth cookie failed with a CryptographicException in production.
+// The keys folder sits in App_Data, which is never served over HTTP.
+builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(storage.KeysRoot))
     .SetApplicationName("ClientShowcase");
-if (OperatingSystem.IsWindows()) dataProtection.ProtectKeysWithDpapi();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -87,6 +89,7 @@ builder.Services.AddResponseCompression(options =>
 var app = builder.Build();
 
 app.Services.GetRequiredService<Database>().Migrate();
+InitialAdmin.EnsureCreated(app.Services, app.Configuration, app.Logger);
 var setup = app.Services.GetRequiredService<SetupCode>();
 if (setup.Code is not null)
 {

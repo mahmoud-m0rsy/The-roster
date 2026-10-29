@@ -2,3 +2,12 @@ bin/
 obj/
 publish/
 App_Data/
+*.user
+.env
+.env.*
+appsettings.*.local.json
+appsettings.Production.json
+secrets.json
+*.pubxml
+*.publishsettings
+setup-code.txt

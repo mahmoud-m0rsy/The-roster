@@ -79,6 +79,50 @@ public sealed class AdminAuth(AdminRepository admins, IPasswordHasher<Admin> has
 }
 
 /// <summary>
+/// Creates an admin account at startup from the <c>InitialAdmin:Username</c> and <c>InitialAdmin:Password</c>
+/// settings (on a host: the <c>InitialAdmin__Username</c> / <c>InitialAdmin__Password</c> environment variables),
+/// so a hosted site can be set up without access to the console setup code. The password is stored only as a
+/// hash, and an account that already exists is never modified, so restarts and redeploys are no-ops.
+/// </summary>
+public static partial class InitialAdmin
+{
+    public static void EnsureCreated(IServiceProvider services, IConfiguration config, ILogger logger)
+    {
+        var username = config["InitialAdmin:Username"]?.Trim();
+        var password = config["InitialAdmin:Password"];
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)) return;
+
+        // Same rules as the setup page.
+        if (username.Length is < 3 or > 64 || !ValidUsername().IsMatch(username))
+        {
+            logger.LogError("InitialAdmin:Username is not valid (3–64 letters, numbers, dots, dashes or underscores); no admin was created");
+            return;
+        }
+        if (password.Length is < 10 or > 200)
+        {
+            logger.LogError("InitialAdmin:Password must be 10–200 characters; no admin was created");
+            return;
+        }
+
+        var admins = services.GetRequiredService<AdminRepository>();
+        if (admins.Find(username) is not null) return;
+
+        try
+        {
+            admins.Create(username, services.GetRequiredService<IPasswordHasher<Admin>>().HashPassword(new Admin(), password));
+            logger.LogWarning("Created admin account {User} from the InitialAdmin settings. You can now remove InitialAdmin__Password from the server", username);
+        }
+        catch (Microsoft.Data.Sqlite.SqliteException ex) when (ex.SqliteErrorCode == 19)
+        {
+            // Another worker process (e.g. an overlapping IIS recycle) created it first.
+        }
+    }
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^[A-Za-z0-9._@-]+$")]
+    private static partial System.Text.RegularExpressions.Regex ValidUsername();
+}
+
+/// <summary>
 /// One-time code required to create the first admin account, so nobody else can claim a
 /// freshly deployed site. Printed to the console and written to App_Data/setup-code.txt.
 /// </summary>

@@ -30,7 +30,8 @@ public static partial class Display
 
     /// <summary>
     /// Renders a headline for the line-by-line reveal animation: every word is wrapped for masking,
-    /// and text between *asterisks* is set in italics.
+    /// and text between *asterisks* is set in italics. Each italic phrase is wrapped in a <c>.hl</c> group
+    /// so it can wrap onto its own line as a unit instead of leaving a lone word behind.
     /// </summary>
     public static IHtmlContent AnimatedTitle(string text)
     {
@@ -39,12 +40,20 @@ public static partial class Display
         var index = 0;
         foreach (var part in text.Split('*'))
         {
-            foreach (var word in part.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            var words = part.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var group = italic && words.Length > 0;
+            if (group) sb.Append("<span class=\"hl\">");
+            foreach (var word in words)
             {
                 var encoded = HtmlEncoder.Default.Encode(word);
                 sb.Append(CultureInfo.InvariantCulture, $"<span class=\"w\" style=\"--i:{index++}\"><span>");
                 sb.Append(italic ? $"<em>{encoded}</em>" : encoded);
                 sb.Append("</span></span> ");
+            }
+            if (group)
+            {
+                sb.Length--;
+                sb.Append("</span> ");
             }
             italic = !italic;
         }

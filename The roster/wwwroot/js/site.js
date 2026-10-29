@@ -23,6 +23,26 @@
         window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
     }
 
+    // ───────────── Light / dark theme toggle (choice remembered on this device) ─────────────
+    const themeToggle = document.querySelector("[data-theme-toggle]");
+    if (themeToggle) {
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+        const sync = () => {
+            const dark = root.dataset.theme === "dark";
+            themeToggle.setAttribute("aria-pressed", String(dark));
+            themeToggle.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+            if (themeColor) themeColor.content = dark ? "#12100e" : "#faf8f5";
+        };
+        sync();
+        themeToggle.addEventListener("click", () => {
+            const dark = root.dataset.theme !== "dark";
+            if (dark) root.dataset.theme = "dark";
+            else delete root.dataset.theme;
+            try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch { /* not persisted */ }
+            sync();
+        });
+    }
+
     // ───────────── Images fade in once decoded ─────────────
     document.querySelectorAll("img[data-fade]").forEach((img) => {
         const done = () => img.classList.add("is-loaded");

@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>ClientShowcase</RootNamespace>
+    <!-- Web Deploy: never upload, overwrite or delete the server's App_Data (live database, media, keys). -->
+    <ExcludeApp_Data>true</ExcludeApp_Data>
   </PropertyGroup>
 
   <ItemGroup>

@@ -17,6 +17,13 @@ Open http://localhost:5127.
 create your admin username and password. After that, the setup page is permanently closed and
 the dashboard lives at `/admin`.
 
+**Or create the first admin from settings** (handy on a host where you can't see the console):
+set `InitialAdmin:Username` and `InitialAdmin:Password` (as environment variables:
+`InitialAdmin__Username` and `InitialAdmin__Password`). On startup the account is created with a
+hashed password if no admin with that username exists yet; an existing account is never changed.
+The password must be at least 10 characters. Once you can sign in, remove `InitialAdmin__Password`.
+Never put real credentials in `appsettings.json` or commit them to Git.
+
 ## What's where
 
 | URL | Purpose |
@@ -58,4 +65,25 @@ site from a OneDrive-synced folder, because syncing an open database can cause f
 dotnet publish -c Release -o publish
 ```
 
-Copy the `publish` folder to the server, along with your `App_Data` folder if you already have data.
+Copy the `publish` folder to the server. `App_Data` is never part of a publish (and Web Deploy is
+set to leave the server's `App_Data` alone), so redeploying never overwrites the live database. To move
+existing data, upload `showcase.db` and `media/` once, but **not** `keys/` (see below).
+
+### MonsterASP.NET / shared IIS hosting
+
+1. In the control panel open your website → **Scripting → Environment variables** and add:
+   - `ASPNETCORE_ENVIRONMENT` = `Production`
+   - `InitialAdmin__Username` = your admin username
+   - `InitialAdmin__Password` = your admin password (remove it after the first successful sign-in)
+   - optional: `Storage__DataPath` = a folder outside the site root for the database, media and keys
+2. Click **Restart application**, then sign in at `/admin/login`.
+3. When publishing from Visual Studio, keep "Remove additional files at destination" unchecked.
+
+Login-session keys in `App_Data/keys` are stored unencrypted on disk (that folder is never served
+over HTTP). Older versions wrapped them with Windows DPAPI, which fails on app pools without a loaded
+user profile and broke the login page with HTTP 500. If you ever copied a `keys` folder from your PC to
+the server, delete the server's `App_Data/keys` folder and restart. This only signs everyone out; no
+data is lost.
+
+To see startup errors on IIS, temporarily set `stdoutLogEnabled="true"` in the deployed `web.config`
+(logs go to `.\logs\stdout*`), restart, reproduce, then turn it off again.
