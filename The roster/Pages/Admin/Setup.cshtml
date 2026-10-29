@@ -1,0 +1,39 @@
+@page "/admin/setup"
+@model ClientShowcase.Pages.Admin.SetupModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Set up your dashboard";
+}
+<div class="auth__card">
+    <h1 class="auth__title">Create your admin account</h1>
+    <p class="muted">
+        This only happens once. Enter the one-time setup code from the app's console window
+        (it is also saved in <code>App_Data/setup-code.txt</code>).
+    </p>
+
+    <form method="post" class="form" novalidate>
+        <div asp-validation-summary="ModelOnly" class="form-alert"></div>
+        <div class="field">
+            <label asp-for="Code"></label>
+            <input asp-for="Code" autocomplete="one-time-code" class="mono" autofocus />
+            <span asp-validation-for="Code" class="field__error"></span>
+        </div>
+        <div class="field">
+            <label asp-for="Username"></label>
+            <input asp-for="Username" autocomplete="username" />
+            <span asp-validation-for="Username" class="field__error"></span>
+        </div>
+        <div class="field">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" autocomplete="new-password" />
+            <span class="field__hint">At least 10 characters. A passphrase works well.</span>
+            <span asp-validation-for="Password" class="field__error"></span>
+        </div>
+        <div class="field">
+            <label asp-for="ConfirmPassword"></label>
+            <input asp-for="ConfirmPassword" autocomplete="new-password" />
+            <span asp-validation-for="ConfirmPassword" class="field__error"></span>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Create account <svg class="icon"><use href="#i-arrow-right" /></svg></button>
+    </form>
+</div>

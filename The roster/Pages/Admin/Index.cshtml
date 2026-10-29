@@ -1,0 +1,136 @@
+@page "/admin"
+@model ClientShowcase.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Clients & ranking";
+    ViewData["Section"] = "clients";
+}
+@section Actions {
+    <a class="btn btn--primary" href="/admin/clients/new"><svg class="icon"><use href="#i-plus" /></svg> <span>Add client</span></a>
+}
+
+<div class="stats">
+    <div class="stat" style="--d:0"><span class="stat__icon"><svg class="icon"><use href="#i-users" /></svg></span><span class="stat__label">Clients</span><span class="stat__value">@Model.Stats.Total</span></div>
+    <div class="stat" style="--d:1"><span class="stat__icon stat__icon--ok"><svg class="icon"><use href="#i-eye" /></svg></span><span class="stat__label">Live on website</span><span class="stat__value">@Model.Stats.Published</span></div>
+    <div class="stat" style="--d:2"><span class="stat__icon stat__icon--gold"><svg class="icon"><use href="#i-briefcase" /></svg></span><span class="stat__label">Work entries</span><span class="stat__value">@Model.Stats.WorkEntries</span></div>
+    <div class="stat" style="--d:3"><span class="stat__icon stat__icon--ink"><svg class="icon"><use href="#i-image" /></svg></span><span class="stat__label">Photos</span><span class="stat__value">@Model.Stats.Photos</span></div>
+</div>
+
+@if (Model.Clients.Count == 0)
+{
+    <div class="panel empty-state">
+        <span class="empty-state__icon"><svg class="icon"><use href="#i-users" /></svg></span>
+        <h2>No clients yet</h2>
+        <p class="muted">Add your first client: their photos, contact details, social profiles and work history.</p>
+        <a class="btn btn--primary" href="/admin/clients/new"><svg class="icon"><use href="#i-plus" /></svg> Add your first client</a>
+    </div>
+}
+else
+{
+    <section class="panel panel--list">
+        <div class="panel__head">
+            <div>
+                <h2 class="panel__title">Homepage order</h2>
+                <p class="muted small">
+                    Clients appear on the website group by group — <strong>Top priority</strong> first, <strong>Low</strong> last.
+                    Change a client's group with the priority menu, or drag them into another group.
+                    Within a group, drag the handle, use the arrows, or type a position.
+                </p>
+            </div>
+            <label class="filter">
+                <svg class="icon"><use href="#i-search" /></svg>
+                <span class="visually-hidden">Filter clients</span>
+                <input type="search" placeholder="Filter by name…" data-filter="#client-list" />
+            </label>
+        </div>
+
+        <ol class="rank-list" id="client-list" data-sortable data-sort-tiers data-sort-url="/admin?handler=Reorder">
+            @foreach (var tier in Priorities.All)
+            {
+                var count = Model.Clients.Count(c => c.Priority == tier);
+                <li class="tier tier--@tier" data-sort-divider data-priority="@tier">
+                    <span class="tier__dot" aria-hidden="true"></span>
+                    <span class="tier__name">@Priorities.Name(tier)</span>
+                    <span class="tier__hint">@Priorities.Hint(tier)</span>
+                    <span class="tier__count" data-tier-count>@count</span>
+                </li>
+                @foreach (var c in Model.Clients.Where(c => c.Priority == tier))
+                {
+                    <li class="rank-row@(c.IsPublished ? "" : " is-hidden")" id="client-@c.Id" data-sort-item data-id="@c.Id"
+                        data-filter-text="@($"{c.FullName} {c.Headline} {c.Location} {c.Email}".ToLowerInvariant())">
+                        <button type="button" class="rank-row__handle" data-sort-handle aria-label="Drag to reorder @c.FullName">
+                            <svg class="icon"><use href="#i-grip" /></svg>
+                        </button>
+
+                        <form method="post" asp-page-handler="Move" class="rank-row__position" data-position-form>
+                            <input type="hidden" name="id" value="@c.Id" />
+                            <label class="visually-hidden" for="pos-@c.Id">Position of @c.FullName</label>
+                            <input id="pos-@c.Id" name="position" type="number" min="1" max="@Model.Clients.Count" value="@c.Position"
+                                   data-rank inputmode="numeric" enterkeyhint="done" />
+                        </form>
+
+                        <a class="rank-row__who" href="/admin/clients/@c.Id/edit">
+                            <span class="avatar">
+                                @if (c.Cover is not null)
+                                {
+                                    <img src="@c.Cover.ThumbUrl" alt="" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span>@c.Initials</span>
+                                }
+                            </span>
+                            <span class="rank-row__name">
+                                <strong dir="auto">@c.FullName</strong>
+                                <small dir="auto">@(c.Headline ?? "No headline yet")</small>
+                            </span>
+                        </a>
+
+                        <div class="rank-row__meta">
+                            <span class="badge @(c.IsPublished ? "badge--live" : "badge--hidden")">@(c.IsPublished ? "Live" : "Hidden")</span>
+                            <form method="post" asp-page-handler="Priority" class="priority-select">
+                                <input type="hidden" name="id" value="@c.Id" />
+                                <label class="visually-hidden" for="prio-@c.Id">Priority of @c.FullName</label>
+                                <select id="prio-@c.Id" name="priority" data-autosubmit class="priority-select__input priority-select__input--@c.Priority">
+                                    @foreach (var level in Priorities.All)
+                                    {
+                                        <option value="@level" selected="@(level == c.Priority)">@Priorities.Name(level)</option>
+                                    }
+                                </select>
+                                <noscript><button type="submit" class="btn btn--small btn--ghost">Set</button></noscript>
+                            </form>
+                            <span class="rank-row__counts">@c.WorkCount work · @c.PhotoCount photos</span>
+                        </div>
+
+                        <div class="rank-row__actions">
+                            <form method="post" asp-page-handler="Move" class="inline">
+                                <input type="hidden" name="id" value="@c.Id" />
+                                <input type="hidden" name="position" value="@(c.Position - 1)" />
+                                <button class="icon-btn" type="submit" aria-label="Move @c.FullName up" title="Move up" disabled="@(c.Position == 1)"><svg class="icon"><use href="#i-up" /></svg></button>
+                            </form>
+                            <form method="post" asp-page-handler="Move" class="inline">
+                                <input type="hidden" name="id" value="@c.Id" />
+                                <input type="hidden" name="position" value="@(c.Position + 1)" />
+                                <button class="icon-btn" type="submit" aria-label="Move @c.FullName down" title="Move down" disabled="@(c.Position == Model.Clients.Count)"><svg class="icon"><use href="#i-down" /></svg></button>
+                            </form>
+                            <a class="icon-btn" href="/admin/clients/@c.Id/edit" title="Edit profile" aria-label="Edit @c.FullName"><svg class="icon"><use href="#i-edit" /></svg></a>
+                            <a class="icon-btn" href="/admin/clients/@c.Id/work" title="Work history" aria-label="Work history of @c.FullName"><svg class="icon"><use href="#i-briefcase" /></svg></a>
+                            <form method="post" asp-page-handler="TogglePublish" class="inline">
+                                <input type="hidden" name="id" value="@c.Id" />
+                                <button class="icon-btn" type="submit" title="@(c.IsPublished ? "Hide from website" : "Show on website")" aria-label="@(c.IsPublished ? "Hide" : "Show") @c.FullName">
+                                    <svg class="icon"><use href="#@(c.IsPublished ? "i-eye" : "i-eye-off")" /></svg>
+                                </button>
+                            </form>
+                            <form method="post" asp-page-handler="Delete" class="inline"
+                                  data-confirm="Delete @c.FullName? Their photos and entire work history will be permanently removed."
+                                  data-confirm-action="Delete client">
+                                <input type="hidden" name="id" value="@c.Id" />
+                                <button class="icon-btn icon-btn--danger" type="submit" title="Delete" aria-label="Delete @c.FullName"><svg class="icon"><use href="#i-trash" /></svg></button>
+                            </form>
+                        </div>
+                    </li>
+                }
+            }
+        </ol>
+        <p class="filter-empty muted" hidden>No clients match that filter.</p>
+    </section>
+}

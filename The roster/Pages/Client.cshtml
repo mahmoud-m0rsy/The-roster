@@ -1,0 +1,264 @@
+@page "/clients/{slug}"
+@model ClientModel
+@{
+    var c = Model.C;
+    ViewData["Title"] = c.FullName;
+    ViewData["Description"] = c.Headline ?? $"{c.FullName} — profile and work history.";
+    if (c.Cover is not null) ViewData["OgImage"] = $"{Request.Scheme}://{Request.Host}{c.Cover.Url}";
+    var gallery = c.Photos.Skip(1).ToList();
+    var second = gallery.FirstOrDefault();
+    var phone = c.ShowPhone ? c.Phone : null;
+    var email = c.ShowEmail ? c.Email : null;
+}
+
+<article class="profile">
+    <div class="container">
+        <nav class="profile__top intro" style="--d:0" aria-label="Breadcrumb">
+            <a href="/#roster" class="chip-link"><svg class="icon"><use href="#i-arrow-left" /></svg> Back<span class="chip-link__long">&nbsp;to the roster</span></a>
+            <span class="rank-chip"><span>Ranked</span> No. @Display.Rank(Model.Profile.Rank)</span>
+        </nav>
+
+        <header class="profile__hero" id="overview">
+            <div class="profile__visual intro" style="--d:1">
+                <figure class="portrait" style="view-transition-name: client-@c.Id">
+                    @if (c.Cover is not null)
+                    {
+                        <a href="@c.Cover.Url" data-lightbox="profile" data-caption="@c.FullName" aria-label="View photo full size">
+                            <img src="@c.Cover.Url" alt="Portrait of @c.FullName" fetchpriority="high" data-fade
+                                 width="@(c.Cover.Width > 0 ? c.Cover.Width : null)" height="@(c.Cover.Height > 0 ? c.Cover.Height : null)" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="portrait__placeholder" aria-hidden="true">@c.Initials</span>
+                    }
+                </figure>
+                @if (second is not null)
+                {
+                    <a class="portrait-mini" href="@second.Url" data-lightbox="profile" data-caption="@c.FullName" aria-label="View another photo">
+                        <img src="@second.ThumbUrl" alt="" loading="lazy" data-fade />
+                    </a>
+                }
+                <span class="portrait-badge" aria-hidden="true">
+                    <small>No.</small>@Display.Rank(Model.Profile.Rank)
+                </span>
+            </div>
+
+            <div class="profile__intro">
+                @if (!string.IsNullOrWhiteSpace(c.Headline))
+                {
+                    <p class="kicker intro" style="--d:2" dir="auto">@c.Headline</p>
+                }
+                <h1 class="profile__name intro" style="--d:3" dir="auto">@c.FullName</h1>
+
+                <div class="facts intro" style="--d:4">
+                    @if (c.Age is not null)
+                    {
+                        <div class="fact"><span>Age</span><strong>@c.Age</strong></div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(c.Location))
+                    {
+                        <div class="fact"><span>Based in</span><strong dir="auto">@c.Location</strong></div>
+                    }
+                    <div class="fact"><span>Projects</span><strong>@c.Work.Count</strong></div>
+                    <div class="fact"><span>Photos</span><strong>@c.Photos.Count</strong></div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(c.Bio))
+                {
+                    <p class="profile__bio intro" style="--d:5" dir="auto">@c.Bio</p>
+                }
+
+                @if (c.InstagramUrl is not null || c.TikTokUrl is not null)
+                {
+                    <div class="socials intro" style="--d:6">
+                        @if (c.InstagramUrl is not null)
+                        {
+                            <a class="social social--ig" href="@c.InstagramUrl" target="_blank" rel="noopener noreferrer">
+                                <span class="social__icon"><svg class="icon"><use href="#i-instagram" /></svg></span>
+                                <span class="social__text"><small>Instagram</small>@Display.Handle(c.InstagramUrl)</span>
+                                <svg class="icon social__arrow"><use href="#i-arrow-up-right" /></svg>
+                            </a>
+                        }
+                        @if (c.TikTokUrl is not null)
+                        {
+                            <a class="social social--tt" href="@c.TikTokUrl" target="_blank" rel="noopener noreferrer">
+                                <span class="social__icon"><svg class="icon"><use href="#i-tiktok" /></svg></span>
+                                <span class="social__text"><small>TikTok</small>@Display.Handle(c.TikTokUrl)</span>
+                                <svg class="icon social__arrow"><use href="#i-arrow-up-right" /></svg>
+                            </a>
+                        }
+                    </div>
+                }
+
+                @if (phone is not null || email is not null)
+                {
+                    <ul class="contact intro" style="--d:7">
+                        @if (phone is not null)
+                        {
+                            <li class="contact__row">
+                                <span class="contact__icon"><svg class="icon"><use href="#i-phone" /></svg></span>
+                                <a href="@Display.TelHref(phone)"><small>Phone</small><bdi>@phone</bdi></a>
+                                <button type="button" class="copy-btn" data-copy="@phone" aria-label="Copy phone number">Copy</button>
+                            </li>
+                        }
+                        @if (email is not null)
+                        {
+                            <li class="contact__row">
+                                <span class="contact__icon"><svg class="icon"><use href="#i-mail" /></svg></span>
+                                <a href="mailto:@email"><small>Email</small>@email</a>
+                                <button type="button" class="copy-btn" data-copy="@email" aria-label="Copy email address">Copy</button>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </header>
+    </div>
+
+    <nav class="subnav" aria-label="Profile sections" data-subnav>
+        <div class="subnav__inner">
+            <span class="subnav__pill" data-subnav-pill aria-hidden="true"></span>
+            <a href="#overview" class="is-active">Overview</a>
+            @if (gallery.Count > 0)
+            {
+                <a href="#portfolio">Portfolio <span>@gallery.Count</span></a>
+            }
+            <a href="#work">Work history <span>@c.Work.Count</span></a>
+        </div>
+    </nav>
+
+    <div class="container">
+        @if (gallery.Count > 0)
+        {
+            <section class="section" id="portfolio" aria-labelledby="gallery-title">
+                <header class="section-head reveal">
+                    <div>
+                        <p class="kicker">Portfolio</p>
+                        <h2 class="section-head__title" id="gallery-title">In <em>pictures</em></h2>
+                    </div>
+                    <p class="section-head__aside">@gallery.Count @(gallery.Count == 1 ? "photo" : "photos") · tap to enlarge</p>
+                </header>
+                <div class="gallery">
+                    @foreach (var photo in gallery)
+                    {
+                        <a class="gallery__item reveal" href="@photo.Url" data-lightbox="profile" data-caption="@c.FullName">
+                            <img src="@photo.ThumbUrl" alt="Photo of @c.FullName" loading="lazy" decoding="async" data-fade
+                                 width="@(photo.Width > 0 ? photo.Width : null)" height="@(photo.Height > 0 ? photo.Height : null)" />
+                            <span class="gallery__zoom" aria-hidden="true"><svg class="icon"><use href="#i-plus" /></svg></span>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+
+        <section class="section" id="work" aria-labelledby="work-title">
+            <header class="section-head reveal">
+                <div>
+                    <p class="kicker">Work history</p>
+                    <h2 class="section-head__title" id="work-title">Our work <em>together</em></h2>
+                </div>
+                <p class="section-head__aside">@c.Work.Count @(c.Work.Count == 1 ? "project" : "projects") on record</p>
+            </header>
+
+            @if (c.Work.Count == 0)
+            {
+                <div class="empty empty--soft reveal">
+                    <span class="empty__mark" aria-hidden="true">✦</span>
+                    <p>Our collaboration history with @c.FullName will appear here.</p>
+                </div>
+            }
+            else
+            {
+                <ol class="timeline" data-timeline>
+                    <li class="timeline__rail" aria-hidden="true"><span data-timeline-progress></span></li>
+                    @foreach (var entry in c.Work)
+                    {
+                        <li class="timeline__item reveal">
+                            <span class="timeline__dot" aria-hidden="true"></span>
+                            <div class="timeline__card">
+                                <div class="timeline__meta">
+                                    @if (entry.DisplayDate is not null)
+                                    {
+                                        <time>@entry.DisplayDate</time>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(entry.Service))
+                                    {
+                                        <span class="tag" dir="auto">@entry.Service</span>
+                                    }
+                                </div>
+                                <h3 class="timeline__title" dir="auto">@entry.Title</h3>
+                                @if (!string.IsNullOrWhiteSpace(entry.Description))
+                                {
+                                    <p class="timeline__text" dir="auto">@entry.Description</p>
+                                }
+                                @if (entry.Images.Count > 0)
+                                {
+                                    <div class="timeline__images">
+                                        @foreach (var img in entry.Images)
+                                        {
+                                            <a href="@img.Url" data-lightbox="work-@entry.Id" data-caption="@entry.Title">
+                                                <img src="@img.ThumbUrl" alt="@entry.Title" loading="lazy" decoding="async" data-fade />
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                                @if (entry.Links.Count > 0)
+                                {
+                                    <div class="timeline__links">
+                                        @foreach (var link in entry.Links)
+                                        {
+                                            <a class="link-pill" href="@link.Url" target="_blank" rel="noopener noreferrer">
+                                                <svg class="icon"><use href="#i-link" /></svg>
+                                                @(string.IsNullOrWhiteSpace(link.Label) ? new Uri(link.Url).Host : link.Label)
+                                                <svg class="icon link-pill__arrow"><use href="#i-arrow-up-right" /></svg>
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ol>
+            }
+        </section>
+
+        @if (Model.Previous is not null || Model.Next is not null)
+        {
+            <nav class="neighbors" aria-label="More clients">
+                @foreach (var (neighbor, label, cls) in new[] { (Model.Previous, "Previous client", "prev"), (Model.Next, "Next client", "next") })
+                {
+                    if (neighbor is null)
+                    {
+                        <span class="neighbor neighbor--empty"></span>
+                        continue;
+                    }
+                    <a class="neighbor neighbor--@cls reveal" href="@Url.Page("/Client", new { slug = neighbor.Slug })">
+                        @if (neighbor.Cover is not null)
+                        {
+                            <img class="neighbor__bg" src="@neighbor.Cover.ThumbUrl" alt="" loading="lazy" />
+                        }
+                        <span class="neighbor__text">
+                            <small>
+                                @if (cls == "prev")
+                                {
+                                    <svg class="icon"><use href="#i-arrow-left" /></svg>
+                                }
+                                @label
+                                @if (cls == "next")
+                                {
+                                    <svg class="icon"><use href="#i-arrow-right" /></svg>
+                                }
+                            </small>
+                            <strong dir="auto">@neighbor.FullName</strong>
+                            @if (!string.IsNullOrWhiteSpace(neighbor.Headline))
+                            {
+                                <span dir="auto">@neighbor.Headline</span>
+                            }
+                        </span>
+                    </a>
+                }
+            </nav>
+        }
+    </div>
+</article>

@@ -1,0 +1,57 @@
+@model (RankedClient Item, bool Spotlight, bool Eager)
+@{
+    var c = Model.Item.Client;
+    var href = Url.Page("/Client", new { slug = c.Slug });
+    var image = c.Cover is null ? null : (Model.Spotlight ? c.Cover.Url : c.Cover.ThumbUrl);
+}
+<article class="card@(Model.Spotlight ? " card--spot" : "") reveal" data-tilt>
+    <a class="card__link" href="@href" aria-label="View @c.FullName's profile">
+        <div class="card__media" style="view-transition-name: client-@c.Id">
+            @if (image is not null)
+            {
+                <img src="@image" alt="@c.FullName" data-fade
+                     width="@(c.Cover!.Width > 0 ? c.Cover.Width : null)" height="@(c.Cover.Height > 0 ? c.Cover.Height : null)"
+                     loading="@(Model.Eager ? "eager" : "lazy")" decoding="async" />
+            }
+            else
+            {
+                <span class="card__placeholder" aria-hidden="true">@c.Initials</span>
+            }
+            <span class="card__rank" aria-label="Rank @Model.Item.Rank">@Display.Rank(Model.Item.Rank)</span>
+            <span class="card__view" aria-hidden="true">View profile <svg class="icon"><use href="#i-arrow-up-right" /></svg></span>
+        </div>
+        <div class="card__info">
+            <h3 class="card__name" dir="auto">@c.FullName</h3>
+            @if (!string.IsNullOrWhiteSpace(c.Headline))
+            {
+                <p class="card__role" dir="auto">@c.Headline</p>
+            }
+            @if (c.Age is not null || !string.IsNullOrWhiteSpace(c.Location))
+            {
+                <p class="card__meta">
+                    @if (c.Age is not null)
+                    {
+                        <span>@c.Age yrs</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(c.Location))
+                    {
+                        <span dir="auto"><svg class="icon"><use href="#i-pin" /></svg>@c.Location</span>
+                    }
+                </p>
+            }
+        </div>
+    </a>
+    @if (c.TikTokUrl is not null || c.InstagramUrl is not null)
+    {
+        <div class="card__social">
+            @if (c.InstagramUrl is not null)
+            {
+                <a href="@c.InstagramUrl" target="_blank" rel="noopener noreferrer" aria-label="@c.FullName on Instagram"><svg class="icon"><use href="#i-instagram" /></svg></a>
+            }
+            @if (c.TikTokUrl is not null)
+            {
+                <a href="@c.TikTokUrl" target="_blank" rel="noopener noreferrer" aria-label="@c.FullName on TikTok"><svg class="icon"><use href="#i-tiktok" /></svg></a>
+            }
+        </div>
+    }
+</article>

@@ -1,0 +1,26 @@
+<dialog class="search-dialog" data-search-dialog aria-label="Search clients">
+    <div class="search-dialog__panel">
+        <form class="search-dialog__bar" action="/" method="get" role="search" data-search-form>
+            <svg class="icon search-dialog__icon" aria-hidden="true"><use href="#i-search" /></svg>
+            <label class="visually-hidden" for="live-search">Search clients by name</label>
+            <input id="live-search" name="q" type="search" placeholder="Search clients by name…" autocomplete="off" autocapitalize="words"
+                   spellcheck="false" enterkeyhint="search" maxlength="60"
+                   role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" data-search-input />
+            <span class="search-dialog__spinner" aria-hidden="true" data-search-spinner></span>
+            <button type="button" class="search-dialog__close" data-search-close>Cancel</button>
+        </form>
+        <div class="search-dialog__body">
+            <p class="search-dialog__hint" data-search-hint>Type a name to find a client instantly.</p>
+            <ul class="search-results" id="search-results" role="listbox" aria-label="Matching clients" data-search-results></ul>
+            <a class="search-dialog__all" href="/#roster" data-search-all hidden>
+                <span>See all results for <strong data-search-term></strong></span>
+                <svg class="icon"><use href="#i-arrow-right" /></svg>
+            </a>
+        </div>
+        <div class="search-dialog__foot" aria-hidden="true">
+            <span><kbd>↑</kbd><kbd>↓</kbd> to move</span>
+            <span><kbd>Enter</kbd> to open</span>
+            <span><kbd>Esc</kbd> to close</span>
+        </div>
+    </div>
+</dialog>

@@ -1,0 +1,24 @@
+@page "/error"
+@using Microsoft.AspNetCore.Mvc
+@attribute [IgnoreAntiforgeryToken]
+@attribute [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+@{
+    var code = int.TryParse(Request.Query["code"], out var c) ? c : 500;
+    if (Response.StatusCode == 200) Response.StatusCode = code;
+    var notFound = code == 404;
+    ViewData["Title"] = notFound ? "Not found" : "Something went wrong";
+}
+<section class="error-page">
+    <div class="container">
+        <p class="error-page__code intro" style="--d:0">@code</p>
+        <h1 class="error-page__title">
+            @Display.AnimatedTitle(notFound ? "This page has *moved on.*" : code == 429 ? "Please *slow down.*" : "Something went *wrong.*")
+        </h1>
+        <p class="error-page__text intro" style="--d:4">
+            @(notFound ? "The profile or page you were looking for doesn't exist or is no longer public."
+                       : code == 429 ? "Too many attempts. Wait a few minutes and try again."
+                                      : "An unexpected error occurred. Please try again in a moment.")
+        </p>
+        <a class="btn btn--dark btn--lg intro" style="--d:5" href="/">Back to the roster <span class="btn__arrow"><svg class="icon"><use href="#i-arrow-right" /></svg></span></a>
+    </div>
+</section>

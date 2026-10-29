@@ -1,0 +1,26 @@
+@page "/admin/login"
+@model ClientShowcase.Pages.Admin.LoginModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Sign in";
+}
+<div class="auth__card">
+    <h1 class="auth__title">Welcome back</h1>
+    <p class="muted">Sign in to manage your clients, rankings and work history.</p>
+
+    <form method="post" class="form" novalidate>
+        <div asp-validation-summary="ModelOnly" class="form-alert"></div>
+        <input type="hidden" asp-for="ReturnUrl" />
+        <div class="field">
+            <label asp-for="Username">Username</label>
+            <input asp-for="Username" autocomplete="username" autofocus />
+            <span asp-validation-for="Username" class="field__error"></span>
+        </div>
+        <div class="field">
+            <label asp-for="Password">Password</label>
+            <input asp-for="Password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="field__error"></span>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Sign in <svg class="icon"><use href="#i-arrow-right" /></svg></button>
+    </form>
+</div>

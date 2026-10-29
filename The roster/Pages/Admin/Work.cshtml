@@ -1,0 +1,89 @@
+@page "/admin/clients/{id:long}/work"
+@model ClientShowcase.Pages.Admin.WorkModel
+@{
+    var c = Model.Client;
+    ViewData["Title"] = c.FullName;
+    ViewData["Section"] = "clients";
+    ViewData["Back"] = "/admin";
+    ViewData["BackLabel"] = "All clients";
+}
+@section Actions {
+    <a class="btn btn--primary" href="/admin/clients/@c.Id/work/new"><svg class="icon"><use href="#i-plus" /></svg> <span>Add work entry</span></a>
+}
+
+<nav class="tabs" aria-label="Client sections">
+    <a class="tabs__tab" href="/admin/clients/@c.Id/edit">Profile &amp; photos</a>
+    <a class="tabs__tab is-active" href="/admin/clients/@c.Id/work" aria-current="page">Work history <span class="tabs__count">@c.Work.Count</span></a>
+</nav>
+
+@if (c.Work.Count == 0)
+{
+    <div class="panel empty-state">
+        <span class="empty-state__icon"><svg class="icon"><use href="#i-briefcase" /></svg></span>
+        <h2>No work history yet</h2>
+        <p class="muted">Record each project, campaign or service you've completed with @c.FullName — with dates, descriptions, images and links.</p>
+        <a class="btn btn--primary" href="/admin/clients/@c.Id/work/new"><svg class="icon"><use href="#i-plus" /></svg> Add the first entry</a>
+    </div>
+}
+else
+{
+    <section class="panel">
+        <div class="panel__head">
+            <div>
+                <h2 class="panel__title">Work history</h2>
+                <p class="muted small">Entries appear on the profile page in this order. Drag, use the arrows, or type a position.</p>
+            </div>
+        </div>
+        <ol class="rank-list" data-sortable data-sort-url="/admin/clients/@c.Id/work?handler=Reorder">
+            @foreach (var e in c.Work)
+            {
+                <li class="rank-row" id="entry-@e.Id" data-sort-item data-id="@e.Id">
+                    <button type="button" class="rank-row__handle" data-sort-handle aria-label="Drag to reorder @e.Title">
+                        <svg class="icon"><use href="#i-grip" /></svg>
+                    </button>
+                    <form method="post" asp-page-handler="Move" class="rank-row__position" data-position-form>
+                        <input type="hidden" name="entryId" value="@e.Id" />
+                        <label class="visually-hidden" for="pos-@e.Id">Position of @e.Title</label>
+                        <input id="pos-@e.Id" name="position" type="number" min="1" max="@c.Work.Count" value="@e.Position" data-rank inputmode="numeric" />
+                    </form>
+                    <a class="rank-row__who" href="/admin/clients/@c.Id/work/@e.Id">
+                        <span class="avatar avatar--square">
+                            @if (e.Images.Count > 0)
+                            {
+                                <img src="@e.Images[0].ThumbUrl" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <svg class="icon"><use href="#i-briefcase" /></svg>
+                            }
+                        </span>
+                        <span class="rank-row__name">
+                            <strong dir="auto">@e.Title</strong>
+                            <small dir="auto">@string.Join(" · ", new[] { e.Service, e.DisplayDate }.Where(s => !string.IsNullOrWhiteSpace(s)))</small>
+                        </span>
+                    </a>
+                    <div class="rank-row__meta">
+                        <span class="rank-row__counts">@e.Images.Count images · @e.Links.Count links</span>
+                    </div>
+                    <div class="rank-row__actions">
+                        <form method="post" asp-page-handler="Move" class="inline">
+                            <input type="hidden" name="entryId" value="@e.Id" />
+                            <input type="hidden" name="position" value="@(e.Position - 1)" />
+                            <button class="icon-btn" type="submit" title="Move up" aria-label="Move @e.Title up" disabled="@(e.Position == 1)"><svg class="icon"><use href="#i-up" /></svg></button>
+                        </form>
+                        <form method="post" asp-page-handler="Move" class="inline">
+                            <input type="hidden" name="entryId" value="@e.Id" />
+                            <input type="hidden" name="position" value="@(e.Position + 1)" />
+                            <button class="icon-btn" type="submit" title="Move down" aria-label="Move @e.Title down" disabled="@(e.Position == c.Work.Count)"><svg class="icon"><use href="#i-down" /></svg></button>
+                        </form>
+                        <a class="icon-btn" href="/admin/clients/@c.Id/work/@e.Id" title="Edit" aria-label="Edit @e.Title"><svg class="icon"><use href="#i-edit" /></svg></a>
+                        <form method="post" asp-page-handler="Delete" class="inline" data-confirm="Delete “@e.Title” and its images?" data-confirm-action="Delete entry">
+                            <input type="hidden" name="entryId" value="@e.Id" />
+                            <button class="icon-btn icon-btn--danger" type="submit" title="Delete" aria-label="Delete @e.Title"><svg class="icon"><use href="#i-trash" /></svg></button>
+                        </form>
+                    </div>
+                </li>
+            }
+        </ol>
+    </section>
+}

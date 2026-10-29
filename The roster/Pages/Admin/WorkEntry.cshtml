@@ -1,0 +1,121 @@
+@page "/admin/clients/{id:long}/work/{entryId}"
+@model ClientShowcase.Pages.Admin.WorkEntryModel
+@{
+    var c = Model.Client;
+    ViewData["Title"] = Model.IsNew ? "New work entry" : Model.Entry!.Title;
+    ViewData["Section"] = "clients";
+    ViewData["Back"] = $"/admin/clients/{c.Id}/work";
+    ViewData["BackLabel"] = $"{c.FullName} · Work history";
+    var rows = Model.Input.Links.Count + (Model.Input.Links.Count < 2 ? 2 - Model.Input.Links.Count : 1);
+    while (Model.Input.Links.Count < rows) Model.Input.Links.Add(new());
+}
+
+@if (!Model.IsNew)
+{
+    <section class="panel" id="images">
+        <div class="panel__head">
+            <div>
+                <h2 class="panel__title">Images</h2>
+                <p class="muted small">Drag to reorder. These appear with this entry on the profile page.</p>
+            </div>
+        </div>
+        @if (Model.Entry!.Images.Count > 0)
+        {
+            <ul class="photo-grid" data-sortable data-sort-axis="grid" data-sort-url="/admin/clients/@c.Id/work/@Model.Entry.Id?handler=ReorderImages">
+                @foreach (var img in Model.Entry.Images)
+                {
+                    <li class="photo-tile photo-tile--plain" data-sort-item data-id="@img.Id">
+                        <img src="@img.ThumbUrl" alt="" loading="lazy" />
+                        <button type="button" class="photo-tile__handle" data-sort-handle aria-label="Drag to reorder image"><svg class="icon"><use href="#i-grip" /></svg></button>
+                        <div class="photo-tile__actions">
+                            <form method="post" asp-page-handler="DeleteImage" class="inline" data-confirm="Remove this image permanently?" data-confirm-action="Remove image">
+                                <input type="hidden" name="imageId" value="@img.Id" />
+                                <button type="submit" class="icon-btn icon-btn--danger icon-btn--glass" aria-label="Delete image"><svg class="icon"><use href="#i-trash" /></svg></button>
+                            </form>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+        <form method="post" asp-page-handler="AddImages" enctype="multipart/form-data" class="dropzone dropzone--compact" data-uploader data-autosubmit>
+            <input type="file" name="Images" accept="image/jpeg,image/png,image/webp,image/avif" multiple data-upload-input id="add-images" />
+            <input type="file" name="Thumbs" multiple hidden data-thumb-input />
+            <label for="add-images" class="dropzone__label">
+                <svg class="icon"><use href="#i-plus" /></svg>
+                <strong>Add images</strong>
+                <span class="muted small">Drop images or browse · uploads start automatically</span>
+            </label>
+            <div class="upload-previews"></div>
+            <noscript><button type="submit" class="btn btn--secondary">Upload</button></noscript>
+        </form>
+    </section>
+}
+
+<form method="post" enctype="multipart/form-data" class="form" novalidate data-busy-form>
+    <div asp-validation-summary="ModelOnly" class="form-alert"></div>
+    <div class="form-grid">
+        <section class="panel">
+            <h2 class="panel__title">Details</h2>
+            <div class="fields">
+                <div class="field field--wide">
+                    <label asp-for="Input.Title"></label>
+                    <input asp-for="Input.Title" dir="auto" placeholder="e.g. Spring campaign for Brand X" />
+                    <span asp-validation-for="Input.Title" class="field__error"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="Input.Service"></label>
+                    <input asp-for="Input.Service" dir="auto" placeholder="e.g. Photoshoot, UGC video, Event" />
+                    <span asp-validation-for="Input.Service" class="field__error"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="Input.WorkDate"></label>
+                    <input asp-for="Input.WorkDate" placeholder="YYYY-MM-DD" inputmode="numeric" autocomplete="off" />
+                    <span class="field__hint">Year, month or exact day: 2025 · 2025-03 · 2025-03-14</span>
+                    <span asp-validation-for="Input.WorkDate" class="field__error"></span>
+                </div>
+                <div class="field field--wide">
+                    <label asp-for="Input.Description"></label>
+                    <textarea asp-for="Input.Description" rows="7" dir="auto" placeholder="What was the project, what was delivered, and how did it go?"></textarea>
+                    <span asp-validation-for="Input.Description" class="field__error"></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2 class="panel__title">Links</h2>
+            <p class="muted small">Published posts, videos, press or campaign pages.</p>
+            <div class="link-rows" data-link-rows data-max="@WorkEntryModel.MaxLinks">
+                @for (var i = 0; i < Model.Input.Links.Count; i++)
+                {
+                    <div class="link-row" data-link-row>
+                        <input asp-for="Input.Links[i].Label" placeholder="Label (optional)" aria-label="Link label" dir="auto" />
+                        <input asp-for="Input.Links[i].Url" placeholder="https://…" aria-label="Link address" inputmode="url" />
+                        <span asp-validation-for="Input.Links[i].Url" class="field__error"></span>
+                    </div>
+                }
+            </div>
+            <button type="button" class="btn btn--ghost btn--small" data-add-link><svg class="icon"><use href="#i-plus" /></svg> Add another link</button>
+
+            @if (Model.IsNew)
+            {
+                <h3 class="panel__subtitle">Images</h3>
+                <div class="dropzone" data-uploader>
+                    <input type="file" name="Images" accept="image/jpeg,image/png,image/webp,image/avif" multiple data-upload-input id="entry-images" />
+                    <input type="file" name="Thumbs" multiple hidden data-thumb-input />
+                    <label for="entry-images" class="dropzone__label">
+                        <svg class="icon"><use href="#i-image" /></svg>
+                        <strong>Drop images here or browse</strong>
+                        <span class="muted small">Optional · resized automatically</span>
+                    </label>
+                    <div class="upload-previews"></div>
+                </div>
+                <span asp-validation-for="Images" class="field__error"></span>
+            }
+        </section>
+    </div>
+
+    <div class="form-actions form-actions--sticky">
+        <a class="btn btn--ghost" href="/admin/clients/@c.Id/work">Cancel</a>
+        <button type="submit" class="btn btn--primary">@(Model.IsNew ? "Add to work history" : "Save changes")</button>
+    </div>
+</form>

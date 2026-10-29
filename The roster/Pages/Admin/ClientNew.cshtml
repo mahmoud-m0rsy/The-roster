@@ -1,0 +1,39 @@
+@page "/admin/clients/new"
+@model ClientShowcase.Pages.Admin.ClientNewModel
+@{
+    ViewData["Title"] = "Add client";
+    ViewData["Section"] = "new";
+    ViewData["Back"] = "/admin";
+    ViewData["BackLabel"] = "All clients";
+}
+
+<form method="post" enctype="multipart/form-data" class="form" novalidate data-busy-form>
+    <div asp-validation-summary="ModelOnly" class="form-alert"></div>
+
+    <section class="panel">
+        <div class="panel__head">
+            <div>
+                <h2 class="panel__title">Photos</h2>
+                <p class="muted small">The first photo becomes the profile photo. You can add, reorder or remove photos later.</p>
+            </div>
+        </div>
+        <div class="dropzone" data-uploader data-preview="#new-previews">
+            <input type="file" name="Photos" accept="image/jpeg,image/png,image/webp,image/avif" multiple data-upload-input id="photos" />
+            <input type="file" name="Thumbs" multiple hidden data-thumb-input />
+            <label for="photos" class="dropzone__label">
+                <svg class="icon"><use href="#i-image" /></svg>
+                <strong>Drop photos here or browse</strong>
+                <span class="muted small">JPG, PNG, WebP or AVIF · resized and optimised automatically</span>
+            </label>
+            <div class="upload-previews" id="new-previews"></div>
+        </div>
+        <span asp-validation-for="Photos" class="field__error"></span>
+    </section>
+
+    <partial name="_ClientForm" for="Input" />
+
+    <div class="form-actions">
+        <a class="btn btn--ghost" href="/admin">Cancel</a>
+        <button type="submit" class="btn btn--primary">Save client</button>
+    </div>
+</form>

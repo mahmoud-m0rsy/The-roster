@@ -1,0 +1,45 @@
+@page "/admin/settings"
+@model ClientShowcase.Pages.Admin.SettingsModel
+@{
+    ViewData["Title"] = "Site settings";
+    ViewData["Section"] = "settings";
+}
+
+<form method="post" class="form" novalidate data-busy-form>
+    <div asp-validation-summary="ModelOnly" class="form-alert"></div>
+    <section class="panel panel--narrow">
+        <h2 class="panel__title">Brand &amp; homepage</h2>
+        <p class="muted small">These texts appear in the header, homepage introduction and footer of the public website.</p>
+        <div class="fields">
+            <div class="field">
+                <label asp-for="Input.SiteName"></label>
+                <input asp-for="Input.SiteName" dir="auto" />
+                <span asp-validation-for="Input.SiteName" class="field__error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Input.Tagline"></label>
+                <input asp-for="Input.Tagline" dir="auto" />
+                <span asp-validation-for="Input.Tagline" class="field__error"></span>
+            </div>
+            <div class="field field--wide">
+                <label asp-for="Input.HeroTitle"></label>
+                <input asp-for="Input.HeroTitle" dir="auto" />
+                <span class="field__hint">Wrap words in *asterisks* to set them in the italic accent colour.</span>
+                <span asp-validation-for="Input.HeroTitle" class="field__error"></span>
+            </div>
+            <div class="field field--wide">
+                <label asp-for="Input.HeroSubtitle"></label>
+                <textarea asp-for="Input.HeroSubtitle" rows="3" dir="auto"></textarea>
+                <span asp-validation-for="Input.HeroSubtitle" class="field__error"></span>
+            </div>
+            <div class="field field--wide">
+                <label asp-for="Input.FooterNote"></label>
+                <input asp-for="Input.FooterNote" dir="auto" />
+                <span asp-validation-for="Input.FooterNote" class="field__error"></span>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn--primary">Save settings</button>
+        </div>
+    </section>
+</form>

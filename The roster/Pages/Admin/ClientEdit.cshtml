@@ -1,0 +1,75 @@
+@page "/admin/clients/{id:long}/edit"
+@model ClientShowcase.Pages.Admin.ClientEditModel
+@{
+    var c = Model.Client;
+    ViewData["Title"] = c.FullName;
+    ViewData["Section"] = "clients";
+    ViewData["Back"] = "/admin";
+    ViewData["BackLabel"] = "All clients";
+}
+@section Actions {
+    @if (c.IsPublished)
+    {
+        <a class="btn btn--ghost" href="/clients/@Uri.EscapeDataString(c.Slug)" target="_blank" rel="noopener"><svg class="icon"><use href="#i-arrow-up-right" /></svg> <span>View profile</span></a>
+    }
+    <a class="btn btn--secondary" href="/admin/clients/@c.Id/work"><svg class="icon"><use href="#i-briefcase" /></svg> <span>Work history (@c.Work.Count)</span></a>
+}
+
+<nav class="tabs" aria-label="Client sections">
+    <a class="tabs__tab is-active" href="/admin/clients/@c.Id/edit" aria-current="page">Profile &amp; photos</a>
+    <a class="tabs__tab" href="/admin/clients/@c.Id/work">Work history <span class="tabs__count">@c.Work.Count</span></a>
+</nav>
+
+<section class="panel" id="photos">
+    <div class="panel__head">
+        <div>
+            <h2 class="panel__title">Photos</h2>
+            <p class="muted small">Drag to reorder. The first photo is the profile photo shown on the homepage card.</p>
+        </div>
+    </div>
+
+    @if (c.Photos.Count > 0)
+    {
+        <ul class="photo-grid" data-sortable data-sort-axis="grid" data-sort-url="/admin/clients/@c.Id/edit?handler=ReorderPhotos">
+            @foreach (var photo in c.Photos)
+            {
+                <li class="photo-tile" data-sort-item data-id="@photo.Id">
+                    <img src="@photo.ThumbUrl" alt="" loading="lazy" />
+                    <span class="photo-tile__badge" data-cover-badge>Profile photo</span>
+                    <button type="button" class="photo-tile__handle" data-sort-handle aria-label="Drag to reorder photo"><svg class="icon"><use href="#i-grip" /></svg></button>
+                    <div class="photo-tile__actions">
+                        <form method="post" asp-page-handler="Cover" class="inline">
+                            <input type="hidden" name="photoId" value="@photo.Id" />
+                            <button type="submit" class="chip" data-cover-action><svg class="icon"><use href="#i-star" /></svg> Make profile photo</button>
+                        </form>
+                        <form method="post" asp-page-handler="DeletePhoto" class="inline" data-confirm="Remove this photo permanently?" data-confirm-action="Remove photo">
+                            <input type="hidden" name="photoId" value="@photo.Id" />
+                            <button type="submit" class="icon-btn icon-btn--danger icon-btn--glass" aria-label="Delete photo"><svg class="icon"><use href="#i-trash" /></svg></button>
+                        </form>
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+
+    <form method="post" asp-page-handler="AddPhotos" enctype="multipart/form-data" class="dropzone dropzone--compact" data-uploader data-autosubmit>
+        <input type="file" name="photos" accept="image/jpeg,image/png,image/webp,image/avif" multiple data-upload-input id="add-photos" />
+        <input type="file" name="thumbs" multiple hidden data-thumb-input />
+        <label for="add-photos" class="dropzone__label">
+            <svg class="icon"><use href="#i-plus" /></svg>
+            <strong>Add photos</strong>
+            <span class="muted small">Drop images or browse · uploads start automatically</span>
+        </label>
+        <div class="upload-previews"></div>
+        <noscript><button type="submit" class="btn btn--secondary">Upload</button></noscript>
+    </form>
+</section>
+
+<form method="post" class="form" novalidate data-busy-form>
+    <div asp-validation-summary="ModelOnly" class="form-alert"></div>
+    <partial name="_ClientForm" for="Input" />
+    <div class="form-actions form-actions--sticky">
+        <span class="muted small">Last updated @c.UpdatedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm")</span>
+        <button type="submit" class="btn btn--primary">Save changes</button>
+    </div>
+</form>

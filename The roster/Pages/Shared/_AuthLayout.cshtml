@@ -1,0 +1,37 @@
+@inject SettingsRepository SettingsRepo
+@{
+    var site = SettingsRepo.Get();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="color-scheme" content="light" />
+    <title>@ViewData["Title"] · @site.SiteName</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <partial name="_Fonts" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="auth">
+    <partial name="_Icons" />
+    <main class="auth__panel">
+        <a class="logo intro" style="--d:0" href="/"><partial name="_Logo" model="site.SiteName" /></a>
+        <div class="intro" style="--d:1">@RenderBody()</div>
+        <p class="auth__foot intro" style="--d:3"><svg class="icon"><use href="#i-lock" /></svg> Private area · authorised administrators only</p>
+    </main>
+    <div class="auth__art" aria-hidden="true">
+        <div class="auth__shapes">
+            <span class="auth__shape auth__shape--1"></span>
+            <span class="auth__shape auth__shape--2"></span>
+            <span class="auth__shape auth__shape--3">@Display.Monogram(site.SiteName)</span>
+        </div>
+        <div class="auth__quote">
+            <p class="kicker">Dashboard</p>
+            <p class="auth__quote-text">Every face, <em>hand-placed.</em></p>
+        </div>
+    </div>
+</body>
+</html>

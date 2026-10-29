@@ -1,0 +1,88 @@
+@model ClientShowcase.Pages.Admin.ClientInput
+<div class="form-grid">
+    <section class="panel">
+        <h2 class="panel__title">Profile</h2>
+        <div class="fields">
+            <div class="field field--wide">
+                <label asp-for="FullName"></label>
+                <input asp-for="FullName" dir="auto" autocomplete="off" required />
+                <span asp-validation-for="FullName" class="field__error"></span>
+            </div>
+            <div class="field field--wide">
+                <label asp-for="Headline"></label>
+                <input asp-for="Headline" dir="auto" placeholder="e.g. Model & content creator" />
+                <span asp-validation-for="Headline" class="field__error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Age"></label>
+                <input asp-for="Age" type="number" min="1" max="120" inputmode="numeric" />
+                <span asp-validation-for="Age" class="field__error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Location"></label>
+                <input asp-for="Location" dir="auto" placeholder="City, country" />
+                <span asp-validation-for="Location" class="field__error"></span>
+            </div>
+            <div class="field field--wide">
+                <label asp-for="Bio"></label>
+                <textarea asp-for="Bio" rows="5" dir="auto" placeholder="A short introduction shown on the profile page."></textarea>
+                <span asp-validation-for="Bio" class="field__error"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2 class="panel__title">Contact &amp; social</h2>
+        <div class="fields">
+            <div class="field">
+                <label asp-for="Phone"></label>
+                <input asp-for="Phone" type="tel" autocomplete="off" placeholder="+20 100 123 4567" />
+                <span asp-validation-for="Phone" class="field__error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" type="email" autocomplete="off" placeholder="name@example.com" />
+                <span asp-validation-for="Email" class="field__error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Instagram"><svg class="icon"><use href="#i-instagram" /></svg> Instagram</label>
+                <input asp-for="Instagram" autocomplete="off" placeholder="@@username or profile link" />
+                <span asp-validation-for="Instagram" class="field__error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="TikTok"><svg class="icon"><use href="#i-tiktok" /></svg> TikTok</label>
+                <input asp-for="TikTok" autocomplete="off" placeholder="@@username or profile link" />
+                <span asp-validation-for="TikTok" class="field__error"></span>
+            </div>
+        </div>
+
+        <h3 class="panel__subtitle">Homepage priority</h3>
+        <div class="priority-picker" role="radiogroup" aria-label="Homepage priority">
+            @foreach (var level in Priorities.All)
+            {
+                <label class="priority-option priority-option--@level">
+                    <input type="radio" name="@Html.NameFor(m => m.Priority)" value="@level" checked="@(Model.Priority == level)" />
+                    <span class="priority-option__dot" aria-hidden="true"></span>
+                    <span class="priority-option__text">
+                        <strong>@Priorities.Name(level)</strong>
+                        <small>@Priorities.Hint(level)</small>
+                    </span>
+                </label>
+            }
+        </div>
+        <p class="field__hint priority-note">Higher priority clients appear first on the homepage. Within a group, you control the exact order from the client list.</p>
+
+        <h3 class="panel__subtitle">Privacy &amp; visibility</h3>
+        <div class="toggles">
+            <label class="toggle"><input asp-for="IsPublished" /><span class="toggle__ui"></span><span>Visible on the website</span></label>
+            <label class="toggle"><input asp-for="ShowPhone" /><span class="toggle__ui"></span><span>Show phone number publicly</span></label>
+            <label class="toggle"><input asp-for="ShowEmail" /><span class="toggle__ui"></span><span>Show email address publicly</span></label>
+        </div>
+
+        <div class="field field--wide">
+            <label asp-for="PrivateNotes"><svg class="icon"><use href="#i-lock" /></svg> Private notes</label>
+            <textarea asp-for="PrivateNotes" rows="3" dir="auto" placeholder="Only visible to admins. Never shown on the website."></textarea>
+            <span asp-validation-for="PrivateNotes" class="field__error"></span>
+        </div>
+    </section>
+</div>

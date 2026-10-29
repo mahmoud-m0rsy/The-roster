@@ -1,0 +1,94 @@
+@inject SettingsRepository SettingsRepo
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var site = SettingsRepo.Get();
+    var section = ViewData["Section"] as string ?? "";
+    var flash = TempData["Flash"] as string;
+    var flashError = TempData["FlashError"] as string;
+    var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+    var user = User.Identity?.Name ?? "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="csrf-token" content="@token" />
+    <meta name="color-scheme" content="light" />
+    <title>@ViewData["Title"] · Dashboard · @site.SiteName</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <partial name="_Fonts" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin">
+    <partial name="_Icons" />
+    <div class="shell">
+        <aside class="sidebar" id="sidebar">
+            <a class="logo" href="/admin">
+                <partial name="_Logo" model="site.SiteName" />
+            </a>
+            <p class="sidebar__label">Manage</p>
+            <nav class="sidebar__nav" aria-label="Dashboard">
+                <a href="/admin" class="@(section == "clients" ? "is-active" : null)"><svg class="icon"><use href="#i-users" /></svg> Clients &amp; ranking</a>
+                <a href="/admin/clients/new" class="@(section == "new" ? "is-active" : null)"><svg class="icon"><use href="#i-plus" /></svg> Add client</a>
+            </nav>
+            <p class="sidebar__label">Website</p>
+            <nav class="sidebar__nav" aria-label="Settings">
+                <a href="/admin/settings" class="@(section == "settings" ? "is-active" : null)"><svg class="icon"><use href="#i-settings" /></svg> Site settings</a>
+                <a href="/admin/account" class="@(section == "account" ? "is-active" : null)"><svg class="icon"><use href="#i-lock" /></svg> Account &amp; security</a>
+                <a href="/" target="_blank" rel="noopener"><svg class="icon"><use href="#i-arrow-up-right" /></svg> View website</a>
+            </nav>
+            <div class="sidebar__foot">
+                <span class="sidebar__avatar" aria-hidden="true">@(user.Length > 0 ? char.ToUpperInvariant(user[0]) : '?')</span>
+                <span class="sidebar__who"><strong>@user</strong><small>Administrator</small></span>
+                <form method="post" action="/admin/logout">
+                    <input type="hidden" name="__RequestVerificationToken" value="@token" />
+                    <button type="submit" class="icon-btn" title="Sign out" aria-label="Sign out"><svg class="icon"><use href="#i-logout" /></svg></button>
+                </form>
+            </div>
+        </aside>
+        <div class="sidebar-scrim" data-sidebar-close></div>
+
+        <div class="workspace">
+            <header class="topbar">
+                <button class="icon-btn topbar__menu" type="button" data-sidebar-toggle aria-controls="sidebar" aria-expanded="false" aria-label="Open menu">
+                    <svg class="icon"><use href="#i-menu" /></svg>
+                </button>
+                <div class="topbar__title">
+                    @if (ViewData["Back"] is string back)
+                    {
+                        <a class="back-link" href="@back"><svg class="icon"><use href="#i-arrow-left" /></svg> @(ViewData["BackLabel"] ?? "Back")</a>
+                    }
+                    <h1 dir="auto">@ViewData["Title"]</h1>
+                </div>
+                <div class="topbar__actions">
+                    @await RenderSectionAsync("Actions", required: false)
+                </div>
+            </header>
+
+            <main class="workspace__main" id="main">
+                @if (flash is not null)
+                {
+                    <div class="toast toast--ok" role="status" data-toast><svg class="icon"><use href="#i-star" /></svg> @flash</div>
+                }
+                @if (flashError is not null)
+                {
+                    <div class="toast toast--error" role="alert" data-toast>@flashError</div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+    <nav class="tabbar" aria-label="Dashboard shortcuts">
+        <a href="/admin" class="@(section == "clients" ? "is-active" : null)"><svg class="icon"><use href="#i-users" /></svg><span>Clients</span></a>
+        <a href="/admin/clients/new" class="tabbar__add @(section == "new" ? "is-active" : null)"><svg class="icon"><use href="#i-plus" /></svg><span>Add</span></a>
+        <a href="/admin/settings" class="@(section == "settings" ? "is-active" : null)"><svg class="icon"><use href="#i-settings" /></svg><span>Settings</span></a>
+        <a href="/" target="_blank" rel="noopener"><svg class="icon"><use href="#i-arrow-up-right" /></svg><span>Website</span></a>
+    </nav>
+    <div class="live-toast" role="status" aria-live="polite" data-live-toast hidden></div>
+
+    <script src="~/js/admin.js" asp-append-version="true" defer></script>
+</body>
+</html>

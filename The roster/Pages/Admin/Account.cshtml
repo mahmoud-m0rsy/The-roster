@@ -1,0 +1,33 @@
+@page "/admin/account"
+@model ClientShowcase.Pages.Admin.AccountModel
+@{
+    ViewData["Title"] = "Account & security";
+    ViewData["Section"] = "account";
+}
+
+<form method="post" class="form" novalidate data-busy-form>
+    <section class="panel panel--narrow">
+        <h2 class="panel__title">Change password</h2>
+        <p class="muted small">Signed in as <strong>@User.Identity?.Name</strong>. Changing your password signs out every other session.</p>
+        <div class="fields fields--single">
+            <div class="field">
+                <label asp-for="CurrentPassword"></label>
+                <input asp-for="CurrentPassword" autocomplete="current-password" />
+                <span asp-validation-for="CurrentPassword" class="field__error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="NewPassword"></label>
+                <input asp-for="NewPassword" autocomplete="new-password" />
+                <span asp-validation-for="NewPassword" class="field__error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="ConfirmPassword"></label>
+                <input asp-for="ConfirmPassword" autocomplete="new-password" />
+                <span asp-validation-for="ConfirmPassword" class="field__error"></span>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn--primary">Update password</button>
+        </div>
+    </section>
+</form>

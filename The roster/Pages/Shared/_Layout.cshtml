@@ -1,0 +1,85 @@
+@inject SettingsRepository SettingsRepo
+@{
+    var site = SettingsRepo.Get();
+    var title = ViewData["Title"] as string;
+    var description = ViewData["Description"] as string ?? site.HeroSubtitle;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>@(title is null ? $"{site.SiteName} — {site.Tagline}" : $"{title} · {site.SiteName}")</title>
+    <meta name="description" content="@description" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#faf8f5" />
+    <meta property="og:site_name" content="@site.SiteName" />
+    <meta property="og:title" content="@(title ?? site.SiteName)" />
+    <meta property="og:description" content="@description" />
+    @if (ViewData["OgImage"] is string ogImage)
+    {
+        <meta property="og:image" content="@ogImage" />
+    }
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <partial name="_Fonts" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script src="~/js/boot.js" asp-append-version="true"></script>
+</head>
+<body class="public">
+    <partial name="_Icons" />
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" data-header>
+        <div class="site-header__bar">
+            <a class="logo" href="/" aria-label="@site.SiteName — home">
+                <partial name="_Logo" model="site.SiteName" />
+            </a>
+            <nav class="site-nav" aria-label="Primary">
+                <a href="/#spotlight" class="site-nav__link">Spotlight</a>
+                <a href="/#roster" class="site-nav__link">The roster</a>
+            </nav>
+            <div class="site-header__actions">
+                <button type="button" class="header-search" data-search-open aria-label="Search clients">
+                    <svg class="icon"><use href="#i-search" /></svg>
+                    <span class="header-search__label">Search</span>
+                    <kbd class="header-search__kbd">/</kbd>
+                </button>
+                <a class="btn btn--dark btn--sm header-dashboard" href="/admin">
+                    <svg class="icon"><use href="#i-grid" /></svg> Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+    <partial name="_SearchDialog" />
+
+    <main id="main" class="page">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="site-footer__top">
+                <div class="site-footer__intro">
+                    <a class="logo" href="/"><partial name="_Logo" model="site.SiteName" /></a>
+                    <p>@site.Tagline</p>
+                </div>
+                <nav class="site-footer__links" aria-label="Footer">
+                    <a href="/#spotlight">Spotlight</a>
+                    <a href="/#roster">The roster</a>
+                    <a href="/admin">Dashboard</a>
+                    <button type="button" class="site-footer__top-btn" data-scroll-top>
+                        Back to top <svg class="icon"><use href="#i-up" /></svg>
+                    </button>
+                </nav>
+            </div>
+            <p class="site-footer__wordmark" aria-hidden="true">@site.SiteName</p>
+            <div class="site-footer__bottom">
+                <span>@site.FooterNote</span>
+                <span>© @DateTime.UtcNow.Year @site.SiteName</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
+</body>
+</html>
